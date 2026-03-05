@@ -1,0 +1,28 @@
+{
+  "name": "إفادة استكمال المتطلبات الإلكترونية",
+  "short_name": "إفادة IT",
+  "description": "نظام إفادات وحدة تكنولوجيا المعلومات — كلية العلوم، جامعة طنطا",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a1628",
+  "theme_color": "#1a3a6e",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "https://drive.google.com/uc?export=view&id=1_jJHrn8X2iaAYsjhsJX4HFPyxFC4BXti",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://drive.google.com/uc?export=view&id=1_jJHrn8X2iaAYsjhsJX4HFPyxFC4BXti",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": []
+}
