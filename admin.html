@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — وحدة IT</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0a1628; --navy2:#112240; --gold:#c9a84c; --goldl:#e8c97a;
+  --cream:#f5f0e8; --muted:#6b7a99; --border:rgba(201,168,76,.22);
+  --green:#2d7a4f; --red:#8b2020;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Cairo',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;direction:rtl;}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 15% 50%,rgba(201,168,76,.05) 0%,transparent 60%),
+  repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(201,168,76,.012) 40px,rgba(201,168,76,.012) 41px);
+  pointer-events:none;z-index:0;}
+
+/* ── LOGIN ── */
+#loginScreen{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.login-card{background:rgba(17,34,64,.95);border:1px solid var(--border);border-radius:20px;
+  padding:48px 40px;width:420px;max-width:95vw;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.5);}
+.login-icon{font-size:52px;margin-bottom:16px;}
+.login-title{font-family:'Amiri',serif;font-size:24px;color:var(--cream);margin-bottom:6px;}
+.login-sub{font-size:12px;color:var(--muted);margin-bottom:32px;}
+.inp{width:100%;background:rgba(10,22,40,.8);border:1px solid var(--border);border-radius:10px;
+  padding:13px 16px;color:var(--cream);font-size:14px;font-family:'Cairo',sans-serif;
+  direction:ltr;text-align:center;margin-bottom:14px;}
+.inp:focus{outline:none;border-color:var(--gold);}
+.btn-login{width:100%;background:var(--gold);color:var(--navy);border:none;border-radius:10px;
+  padding:14px;font-size:15px;font-weight:700;font-family:'Cairo',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-login:hover{background:var(--goldl);}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;}
+.err{background:rgba(139,32,32,.15);border:1px solid rgba(139,32,32,.35);color:#e06060;
+  border-radius:8px;padding:10px;font-size:13px;margin-top:12px;}
+
+/* ── HEADER ── */
+#appHeader{display:none;position:relative;z-index:10;background:rgba(10,22,40,.97);
+  border-bottom:1px solid var(--border);padding:0 32px;height:64px;
+  align-items:center;justify-content:space-between;backdrop-filter:blur(10px);}
+.hlogo{display:flex;align-items:center;gap:12px;}
+.hlogo-icon{font-size:24px;}
+.hlogo h1{font-size:14px;font-weight:700;color:var(--cream);}
+.hlogo p{font-size:10px;color:var(--gold);}
+.hstats{display:flex;gap:14px;}
+.schip{display:flex;align-items:center;gap:6px;background:rgba(201,168,76,.07);
+  border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;}
+.schip span:first-child{color:var(--gold);}
+
+/* ── MAIN APP ── */
+#appMain{display:none;position:relative;z-index:1;padding:28px 32px;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:6px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.tab{padding:10px 20px;border-radius:8px 8px 0 0;font-size:13px;font-weight:600;
+  font-family:'Cairo',sans-serif;cursor:pointer;border:1px solid transparent;
+  border-bottom:none;color:var(--muted);background:transparent;transition:all .15s;
+  position:relative;bottom:-1px;}
+.tab.active{background:rgba(201,168,76,.1);border-color:var(--border);
+  color:var(--gold);border-bottom-color:var(--navy);}
+
+/* ── MAPPING PANEL ── */
+.panel{display:none;}
+.panel.active{display:block;}
+.panel-card{background:rgba(17,34,64,.7);border:1px solid var(--border);border-radius:12px;padding:24px;}
+.panel-title{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.map-row{display:grid;grid-template-columns:1fr 16px 1fr;align-items:center;gap:6px;}
+.map-label{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);
+  border-radius:6px;padding:6px 10px;color:var(--gold);font-size:11px;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.map-arrow{color:var(--muted);text-align:center;font-size:13px;}
+.map-sel{background:rgba(10,22,40,.8);border:1px solid rgba(201,168,76,.2);
+  border-radius:6px;padding:6px 8px;color:var(--cream);font-size:11px;
+  font-family:'Cairo',sans-serif;width:100%;direction:rtl;}
+.map-sel:focus{outline:none;border-color:var(--gold);}
+.map-required .map-label{border-color:rgba(201,168,76,.5);}
+
+/* ── MEMBERS TABLE ── */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{width:100%;background:rgba(10,22,40,.8);border:1px solid var(--border);
+  border-radius:8px;padding:9px 34px 9px 12px;color:var(--cream);font-size:13px;
+  font-family:'Cairo',sans-serif;direction:rtl;}
+.search-wrap input::placeholder{color:var(--muted);}
+.search-wrap input:focus{outline:none;border-color:var(--gold);}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;}
+.ftabs{display:flex;gap:4px;}
+.ftab{padding:5px 12px;border-radius:14px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:11px;font-family:'Cairo',sans-serif;
+  cursor:pointer;transition:all .15s;}
+.ftab.active{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700;}
+
+.tbl-wrap{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:rgba(201,168,76,.12);}
+th{padding:11px 14px;font-size:11px;font-weight:700;color:var(--gold);
+  letter-spacing:.8px;text-align:right;white-space:nowrap;}
+tbody tr{border-top:1px solid rgba(201,168,76,.07);transition:background .1s;}
+tbody tr:hover{background:rgba(201,168,76,.04);}
+td{padding:11px 14px;font-size:12px;color:var(--cream);vertical-align:middle;}
+.td-name{font-weight:600;font-size:13px;}
+.td-email{color:var(--muted);font-size:11px;direction:ltr;text-align:right;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:12px;font-size:10px;font-weight:700;border:1px solid;}
+.badge-p{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.35);color:var(--gold);}
+.badge-a{background:rgba(45,122,79,.1);border-color:rgba(45,122,79,.35);color:#4aac78;}
+.td-actions{display:flex;gap:6px;justify-content:flex-end;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;
+  font-size:11px;font-weight:700;font-family:'Cairo',sans-serif;
+  cursor:pointer;border:none;transition:all .15s;white-space:nowrap;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-gold{background:var(--gold);color:var(--navy);}
+.btn-gold:hover:not(:disabled){background:var(--goldl);transform:translateY(-1px);}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,.35);}
+.btn-outline:hover:not(:disabled){background:rgba(201,168,76,.07);}
+.btn-success{background:rgba(45,122,79,.12);color:#4aac78;border:1px solid rgba(45,122,79,.3);}
+.btn-success:hover:not(:disabled){background:rgba(45,122,79,.22);}
+.btn-danger{background:rgba(139,32,32,.12);color:#e06060;border:1px solid rgba(139,32,32,.28);}
+.btn-danger:hover:not(:disabled){background:rgba(139,32,32,.22);}
+.btn-sm{padding:5px 10px;font-size:10px;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(14px);
+  background:var(--navy2);border:1px solid var(--gold);color:var(--cream);
+  padding:10px 22px;border-radius:9px;font-size:13px;z-index:999;
+  opacity:0;transition:all .3s;white-space:nowrap;
+  box-shadow:0 6px 28px rgba(0,0,0,.5);pointer-events:none;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);
+  z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.show{display:flex;}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:14px;
+  padding:28px;width:420px;max-width:92vw;box-shadow:0 20px 70px rgba(0,0,0,.6);}
+.modal h3{font-size:17px;font-weight:700;color:var(--cream);margin-bottom:7px;}
+.modal p{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6;}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end;}
+
+.empty-row td{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">لوحة تحكم الأدمن</div>
+    <div class="login-sub">وحدة تكنولوجيا المعلومات — جامعة طنطا</div>
+    <input type="password" class="inp" id="passInput" placeholder="كلمة السر"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()" id="loginBtn">دخول</button>
+    <div id="loginErr" style="display:none" class="err"></div>
+  </div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<div id="appHeader">
+  <div class="hlogo">
+    <div class="hlogo-icon">🎓</div>
+    <div>
+      <h1>لوحة تحكم — وحدة تكنولوجيا المعلومات</h1>
+      <p>نظام إفادات أعضاء هيئة التدريس</p>
+    </div>
+  </div>
+  <div class="hstats">
+    <div class="schip"><span>📋</span><span>الإجمالي:</span><strong id="s-total">—</strong></div>
+    <div class="schip"><span>✅</span><span>معتمد:</span><strong id="s-approved">—</strong></div>
+    <div class="schip"><span>⏳</span><span>انتظار:</span><strong id="s-pending">—</strong></div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div id="appMain">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('members',this)">👥 الأعضاء</button>
+    <button class="tab" onclick="switchTab('mapping',this)">⚙️ ربط الأعمدة</button>
+  </div>
+
+  <!-- ── TAB: MEMBERS ── -->
+  <div class="panel active" id="tab-members">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input type="text" id="searchInp" placeholder="بحث بالاسم أو الإيميل أو القسم..." oninput="renderTable()">
+        <span class="si">🔍</span>
+      </div>
+      <div class="ftabs">
+        <button class="ftab active" onclick="setFilter('all',this)">الكل</button>
+        <button class="ftab" onclick="setFilter('approved',this)">✅ معتمد</button>
+        <button class="ftab" onclick="setFilter('pending',this)">⏳ انتظار</button>
+      </div>
+      <button class="btn btn-gold" onclick="confirmApproveAll()">✅ اعتماد الكل</button>
+      <button class="btn btn-outline" onclick="loadMembers()">🔄 تحديث</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الاسم</th>
+            <th>البريد الإلكتروني</th>
+            <th>القسم</th>
+            <th>الدرجة</th>
+            <th>الحالة</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="tblBody">
+          <tr><td colspan="7" class="loading">⏳ جاري التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="tbl-count" style="font-size:11px;color:var(--muted);margin-top:8px;text-align:left"></div>
+  </div>
+
+  <!-- ── TAB: MAPPING ── -->
+  <div class="panel" id="tab-mapping">
+    <div class="panel-card">
+      <div class="panel-title">⚙️ ربط أعمدة الشيت بحقول الإفادة</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.7">
+        اضغط "تحميل أعمدة الشيت" أولاً، ثم حدد لكل حقل العمود المقابل في شيتك.
+        الحقول بالنجمة (*) إلزامية.
+      </p>
+      <button class="btn btn-outline" onclick="loadHeaders()" id="loadHdrBtn" style="margin-bottom:18px">
+        📥 تحميل أعمدة الشيت
+      </button>
+      <div id="mappingArea" style="display:none">
+        <div class="map-grid" id="mapGrid"></div>
+        <button class="btn btn-gold" onclick="saveMapping()">💾 حفظ الربط</button>
+      </div>
+      <div id="mapMsg" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+</div><!-- /appMain -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalMsg"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-gold" id="modalOk">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════
+// STATE
+// ════════════════════════════════════
+let PASS = '';
+let allMembers = [];
+let activeFilter = 'all';
+let sheetHeaders = [];
+
+const FIELD_DEFS = [
+  { key:'name',         label:'الاسم (عربي)',           req:true  },
+  { key:'name_en',      label:'الاسم (إنجليزي)',         req:false },
+  { key:'email',        label:'الإيميل المؤسسي',          req:true  },
+  { key:'dept',         label:'القسم',                   req:false },
+  { key:'faculty',      label:'الكلية',                  req:false },
+  { key:'rank',         label:'الدرجة الوظيفية',          req:false },
+  { key:'personal_url', label:'رابط الصفحة الشخصية',    req:false },
+  { key:'pub_count',    label:'عدد الأبحاث',             req:false },
+  { key:'scopus_url',   label:'Scopus (رابط)',           req:false },
+  { key:'scopus_id',    label:'Scopus ID',              req:false },
+  { key:'orcid',        label:'ORCID',                  req:false },
+  { key:'scholar',      label:'Google Scholar',         req:false },
+  { key:'researchgate', label:'ResearchGate',           req:false },
+  { key:'wos_url',      label:'WOS (رابط)',             req:false },
+  { key:'wos_id',       label:'WOS Res. ID',            req:false },
+  { key:'status',       label:'عمود الحالة ✱',           req:true  },
+];
+
+// ════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════
+function doLogin() {
+  const p = document.getElementById('passInput').value.trim();
+  if (!p) return;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+
+  google.script.run
+    .withSuccessHandler(ok => {
+      if (ok) {
+        PASS = p;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appHeader').style.display = 'flex';
+        document.getElementById('appMain').style.display = 'block';
+        loadMembers();
+      } else {
+        showLoginErr('كلمة السر غلط');
+        btn.disabled = false; btn.textContent = 'دخول';
+      }
+    })
+    .withFailureHandler(e => {
+      showLoginErr('خطأ: ' + e.message);
+      btn.disabled = false; btn.textContent = 'دخول';
+    })
+    .checkAdminPass(p);
+}
+
+function showLoginErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ════════════════════════════════════
+// TABS
+// ════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ════════════════════════════════════
+// LOAD MEMBERS
+// ════════════════════════════════════
+function loadMembers() {
+  document.getElementById('tblBody').innerHTML = '<tr><td colspan="7" class="loading">⏳ جاري التحميل...</td></tr>';
+  google.script.run
+    .withSuccessHandler(data => {
+      if (data.error) { toast('❌ ' + data.error); return; }
+      allMembers = data.members || [];
+      updateStats();
+      renderTable();
+    })
+    .withFailureHandler(e => toast('❌ ' + e.message))
+    .getAllMembers(PASS);
+}
+
+function updateStats() {
+  const approved = allMembers.filter(m => m.status === 'معتمد').length;
+  const pending  = allMembers.length - approved;
+  document.getElementById('s-total').textContent    = allMembers.length;
+  document.getElementById('s-approved').textContent = approved;
+  document.getElementById('s-pending').textContent  = pending;
+}
+
+// ════════════════════════════════════
+// RENDER TABLE
+// ════════════════════════════════════
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('searchInp').value || '').toLowerCase();
+  const filtered = allMembers.filter(m => {
+    const mf = activeFilter === 'all'
+      || (activeFilter === 'approved' && m.status === 'معتمد')
+      || (activeFilter === 'pending'  && m.status !== 'معتمد');
+    const ms = !q
+      || (m.name||'').toLowerCase().includes(q)
+      || (m.email||'').toLowerCase().includes(q)
+      || (m.dept||'').toLowerCase().includes(q);
+    return mf && ms;
+  });
+
+  const tbody = document.getElementById('tblBody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">لا توجد نتائج</td></tr>';
+    document.getElementById('tbl-count').textContent = '';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((m, i) => {
+    const isApproved = m.status === 'معتمد';
+    return `
+    <tr>
+      <td style="color:var(--muted);font-size:11px">${i + 1}</td>
+      <td>
+        <div class="td-name">${esc(m.name)}</div>
+      </td>
+      <td><div class="td-email">${esc(m.email)}</div></td>
+      <td style="font-size:11px;color:var(--muted)">${esc(m.dept || '—')}</td>
+      <td style="font-size:11px;color:var(--muted)">${esc(m.rank || '—')}</td>
+      <td>
+        <span class="badge ${isApproved ? 'badge-a' : 'badge-p'}">
+          ${isApproved ? '✅ معتمد' : '⏳ انتظار'}
+        </span>
+      </td>
+      <td>
+        <div class="td-actions">
+          ${isApproved
+            ? `<button class="btn btn-danger btn-sm" onclick="changeStatus(${m.rowIndex},'')">↩️ إلغاء</button>`
+            : `<button class="btn btn-success btn-sm" onclick="changeStatus(${m.rowIndex},'معتمد')">✅ اعتماد</button>`
+          }
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tbl-count').textContent = `عرض ${filtered.length} من ${allMembers.length} عضو`;
+}
+
+// ════════════════════════════════════
+// ACTIONS
+// ════════════════════════════════════
+function changeStatus(rowIndex, newStatus) {
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.error) { toast('❌ ' + res.error); return; }
+      // Update local
+      const m = allMembers.find(x => x.rowIndex === rowIndex);
+      if (m) m.status = newStatus;
+      updateStats(); renderTable();
+      toast(newStatus === 'معتمد' ? '✅ تم الاعتماد' : '↩️ تم إلغاء الاعتماد');
+    })
+    .withFailureHandler(e => toast('❌ ' + e.message))
+    .setMemberStatus(PASS, rowIndex, newStatus);
+}
+
+function confirmApproveAll() {
+  const pending = allMembers.filter(m => m.status !== 'معتمد').length;
+  if (!pending) { toast('✅ كل الأعضاء معتمدون بالفعل'); return; }
+  showModal(
+    '✅ اعتماد الكل',
+    `سيتم اعتماد <strong>${pending}</strong> عضو دفعة واحدة. هل أنت متأكد؟`,
+    () => {
+      toast('⏳ جاري الاعتماد...');
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.error) { toast('❌ ' + res.error); return; }
+          toast(`✅ تم اعتماد ${res.count} عضو`);
+          loadMembers();
+        })
+        .withFailureHandler(e => toast('❌ ' + e.message))
+        .approveAll(PASS);
+    }
+  );
+}
+
+// ════════════════════════════════════
+// COLUMN MAPPING
+// ════════════════════════════════════
+function loadHeaders() {
+  const btn = document.getElementById('loadHdrBtn');
+  btn.disabled = true; btn.textContent = '⏳ جاري التحميل...';
+
+  google.script.run
+    .withSuccessHandler(data => {
+      btn.disabled = false; btn.textContent = '📥 تحميل أعمدة الشيت';
+      if (data.error) { showMapMsg('❌ ' + data.error, 'error'); return; }
+      sheetHeaders = data.headers;
+      buildMappingUI();
+      document.getElementById('mappingArea').style.display = 'block';
+    })
+    .withFailureHandler(e => {
+      btn.disabled = false; btn.textContent = '📥 تحميل أعمدة الشيت';
+      showMapMsg('❌ ' + e.message, 'error');
+    })
+    .getSheetHeaders(PASS);
+}
+
+function buildMappingUI() {
+  const autoHints = {
+    name:['اسم','الاسم','name'],name_en:['english','انجليزي','إنجليزي'],
+    email:['ايميل','إيميل','email','mail','بريد'],dept:['قسم','dept','department'],
+    faculty:['كلية','faculty'],rank:['درجة','rank','وظيفة','title'],
+    personal_url:['صفحة','personal','profile'],pub_count:['أبحاث','publications','pub'],
+    scopus_url:['scopus','سكوبس'],scopus_id:['scopus id'],
+    orcid:['orcid'],scholar:['scholar'],researchgate:['researchgate'],
+    wos_url:['wos','web of science'],wos_id:['wos res','wos id'],
+    status:['حالة','status','اعتماد','approved'],
+  };
+
+  // Auto-detect
+  const autoMap = {};
+  sheetHeaders.forEach((h, i) => {
+    const lc = h.toLowerCase();
+    FIELD_DEFS.forEach(f => {
+      if (autoMap[f.key] === undefined && autoHints[f.key]) {
+        if (autoHints[f.key].some(hint => lc.includes(hint))) autoMap[f.key] = i + 1;
+      }
+    });
+  });
+
+  document.getElementById('mapGrid').innerHTML = FIELD_DEFS.map(f => `
+    <div class="map-row ${f.req ? 'map-required' : ''}">
+      <div class="map-label">${f.label}</div>
+      <div class="map-arrow">←</div>
+      <select class="map-sel" id="msel_${f.key}">
+        <option value="">— لا يوجد —</option>
+        ${sheetHeaders.map((h, i) =>
+          `<option value="${i+1}" ${autoMap[f.key] === i+1 ? 'selected' : ''}>${h}</option>`
+        ).join('')}
+      </select>
+    </div>`).join('');
+
+  showMapMsg('', '');
+}
+
+function saveMapping() {
+  const mapping = {};
+  let missing = [];
+  FIELD_DEFS.forEach(f => {
+    const val = document.getElementById('msel_' + f.key)?.value;
+    if (val) mapping[f.key] = parseInt(val);
+    else if (f.req) missing.push(f.label);
+  });
+
+  if (missing.length) {
+    showMapMsg('⚠️ الحقول الإلزامية غير محددة: ' + missing.join('، '), 'error');
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.error) { showMapMsg('❌ ' + res.error, 'error'); return; }
+      showMapMsg('✅ تم حفظ الربط بنجاح! يمكنك الآن تحميل الأعضاء.', 'success');
+      toast('✅ تم حفظ ربط الأعمدة');
+      loadMembers();
+    })
+    .withFailureHandler(e => showMapMsg('❌ ' + e.message, 'error'))
+    .saveColumnMapping(PASS, mapping);
+}
+
+function showMapMsg(msg, type) {
+  const el = document.getElementById('mapMsg');
+  if (!msg) { el.innerHTML = ''; return; }
+  const colors = { error:'rgba(139,32,32,.15)', success:'rgba(45,122,79,.12)' };
+  const textColors = { error:'#e06060', success:'#4aac78' };
+  el.innerHTML = `<div style="background:${colors[type]};color:${textColors[type]};border-radius:8px;padding:10px;font-size:12px">${msg}</div>`;
+}
+
+// ════════════════════════════════════
+// MODAL & TOAST
+// ════════════════════════════════════
+let modalCB = null;
+function showModal(t, m, cb) {
+  document.getElementById('modalTitle').textContent = t;
+  document.getElementById('modalMsg').innerHTML = m;
+  document.getElementById('modal').classList.add('show');
+  modalCB = cb;
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); modalCB = null; }
+document.getElementById('modalOk').onclick = () => { closeModal(); if (modalCB) modalCB(); };
+
+let tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 3200);
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
